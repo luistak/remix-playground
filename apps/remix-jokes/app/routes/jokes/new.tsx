@@ -1,11 +1,14 @@
-import { ActionFunction, Form, LoaderFunction } from "remix";
+import type { ActionFunction, LoaderFunction } from "remix";
 import {
   useActionData,
   redirect,
   json,
   useCatch,
-  Link
+  Link,
+  Form,
+  useTransition
 } from "remix";
+import { JokeDisplay } from "~/components/joke";
 import { db } from "~/utils/db.server";
 import {
   requireUserId,
@@ -19,7 +22,6 @@ export const loader: LoaderFunction = async ({
   if (!userId) {
     throw new Response("Unauthorized", { status: 401 });
   }
-
   return {};
 };
 
@@ -83,6 +85,27 @@ export const action: ActionFunction = async ({
 
 export default function NewJokeRoute() {
   const actionData = useActionData<ActionData>();
+  const transition = useTransition();
+
+  if (transition.submission) {
+    const name = transition.submission.formData.get("name");
+    const content =
+      transition.submission.formData.get("content");
+    if (
+      typeof name === "string" &&
+      typeof content === "string" &&
+      !validateJokeContent(content) &&
+      !validateJokeName(name)
+    ) {
+      return (
+        <JokeDisplay
+          joke={{ name, content }}
+          isOwner={true}
+          canDelete={false}
+        />
+      );
+    }
+  }
 
   return (
     <div>
@@ -166,7 +189,9 @@ export function CatchBoundary() {
   }
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: { error: Error }) {
+  console.error(error);
+
   return (
     <div className="error-container">
       Something unexpected went wrong. Sorry about that.

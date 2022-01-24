@@ -1,7 +1,6 @@
-import {
-  ActionFunction,
-  Form,
+import type {
   LoaderFunction,
+  ActionFunction,
   MetaFunction
 } from "remix";
 import {
@@ -17,6 +16,7 @@ import {
   getUserId,
   requireUserId
 } from "~/utils/session.server";
+import { JokeDisplay } from "~/components/joke";
 
 export const meta: MetaFunction = ({
   data
@@ -42,6 +42,7 @@ export const loader: LoaderFunction = async ({
   params
 }) => {
   const userId = await getUserId(request);
+
   const joke = await db.joke.findUnique({
     where: { id: params.jokeId }
   });
@@ -90,23 +91,7 @@ export default function JokeRoute() {
   const data = useLoaderData<LoaderData>();
 
   return (
-    <div>
-      <p>Here's your hilarious joke:</p>
-      <p>{data.joke.content}</p>
-      <Link to=".">{data.joke.name} Permalink</Link>
-      {data.isOwner ? (
-        <Form method="post">
-          <input
-            type="hidden"
-            name="_method"
-            value="delete"
-          />
-          <button type="submit" className="button">
-            Delete
-          </button>
-        </Form>
-      ) : null}
-    </div>
+    <JokeDisplay joke={data.joke} isOwner={data.isOwner} />
   );
 }
 
@@ -134,7 +119,9 @@ export function CatchBoundary() {
   }
 }
 
-export function ErrorBoundary() {
+export function ErrorBoundary({ error }: { error: Error }) {
+  console.error(error);
+
   const { jokeId } = useParams();
   return (
     <div className="error-container">{`There was an error loading joke by the id ${jokeId}. Sorry.`}</div>
