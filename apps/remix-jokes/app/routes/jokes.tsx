@@ -1,9 +1,11 @@
 import { User } from "@prisma/client";
 import {
+  ActionFunction,
   Link,
   LinksFunction,
   LoaderFunction,
   Outlet,
+  useCatch,
   useLoaderData
 } from "remix";
 import { db } from "~/utils/db.server";
@@ -93,6 +95,25 @@ export default function JokesRoute() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+export function CatchBoundary() {
+  const caught = useCatch();
+
+  console.log({ caught });
+
+  throw caught;
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+
+  console.log({ error });
+  return (
+    <div className="error-container">
+      <h2>Deu ruim fi</h2>
+      <pre>{error.message}</pre>
     </div>
   );
 }
