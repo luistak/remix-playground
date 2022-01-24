@@ -1,4 +1,8 @@
-import { ActionFunction, LoaderFunction } from "remix";
+import type {
+  ActionFunction,
+  LoaderFunction,
+  MetaFunction
+} from "remix";
 import {
   Link,
   useLoaderData,
@@ -12,6 +16,23 @@ import {
   getUserId,
   requireUserId
 } from "~/utils/session.server";
+
+export const meta: MetaFunction = ({
+  data
+}: {
+  data: LoaderData | undefined;
+}) => {
+  if (!data) {
+    return {
+      title: "No joke",
+      description: "No joke found"
+    };
+  }
+  return {
+    title: `"${data.joke.name}" joke`,
+    description: `Enjoy the "${data.joke.name}" joke and much more`
+  };
+};
 
 type LoaderData = { joke: Joke; isOwner: boolean };
 
@@ -45,14 +66,12 @@ export const action: ActionFunction = async ({
     const joke = await db.joke.findUnique({
       where: { id: params.jokeId }
     });
-
     if (!joke) {
       throw new Response(
         "Can't delete what does not exist",
         { status: 404 }
       );
     }
-
     if (joke.jokesterId !== userId) {
       throw new Response(
         "Pssh, nice try. That's not your joke",
@@ -61,7 +80,6 @@ export const action: ActionFunction = async ({
         }
       );
     }
-
     await db.joke.delete({ where: { id: params.jokeId } });
     return redirect("/jokes");
   }
@@ -115,9 +133,7 @@ export function CatchBoundary() {
   }
 }
 
-export function ErrorBoundary({ error }: { error: Error }) {
-  console.error(error);
-
+export function ErrorBoundary() {
   const { jokeId } = useParams();
   return (
     <div className="error-container">{`There was an error loading joke by the id ${jokeId}. Sorry.`}</div>
