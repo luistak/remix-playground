@@ -1,5 +1,6 @@
-import type {
+import {
   ActionFunction,
+  Form,
   LinksFunction,
   MetaFunction
 } from "remix";
@@ -130,7 +131,7 @@ export default function Login() {
     <div className="container">
       <div className="content" data-light="">
         <h1>Login</h1>
-        <form
+        <Form
           method="post"
           aria-describedby={
             actionData?.formError
@@ -241,7 +242,7 @@ export default function Login() {
           <button type="submit" className="button">
             Submit
           </button>
-        </form>
+        </Form>
       </div>
       <div className="links">
         <ul>
